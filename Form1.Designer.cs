@@ -54,11 +54,13 @@
       this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.statusBar1 = new System.Windows.Forms.StatusBar();
+      this.statusBar = new System.Windows.Forms.StatusBar();
       this.btnComplete = new System.Windows.Forms.Button();
+      this.statusBarPanel1 = new System.Windows.Forms.StatusBarPanel();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.gbSearch.SuspendLayout();
       this.menuStrip1.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.statusBarPanel1)).BeginInit();
       this.SuspendLayout();
       // 
       // lblID
@@ -259,13 +261,13 @@
       this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
       this.aboutToolStripMenuItem.Text = "About";
       // 
-      // statusBar1
+      // statusBar
       // 
-      this.statusBar1.Location = new System.Drawing.Point(0, 349);
-      this.statusBar1.Name = "statusBar1";
-      this.statusBar1.Size = new System.Drawing.Size(542, 22);
-      this.statusBar1.TabIndex = 17;
-      this.statusBar1.Text = "statusBar1";
+      this.statusBar.Location = new System.Drawing.Point(0, 349);
+      this.statusBar.Name = "statusBar";
+      this.statusBar.Panels.AddRange(new System.Windows.Forms.StatusBarPanel[] { this.statusBarPanel1 });
+      this.statusBar.Size = new System.Drawing.Size(542, 22);
+      this.statusBar.TabIndex = 17;
       // 
       // btnComplete
       // 
@@ -277,13 +279,18 @@
       this.btnComplete.UseVisualStyleBackColor = true;
       this.btnComplete.Click += new System.EventHandler(this.btnComplete_Click);
       // 
+      // statusBarPanel1
+      // 
+      this.statusBarPanel1.Name = "statusBarPanel1";
+      this.statusBarPanel1.Text = "statusBarPanel1";
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(542, 371);
       this.Controls.Add(this.btnComplete);
-      this.Controls.Add(this.statusBar1);
+      this.Controls.Add(this.statusBar);
       this.Controls.Add(this.gbSearch);
       this.Controls.Add(this.label1);
       this.Controls.Add(this.lblEstHours);
@@ -302,13 +309,16 @@
       this.gbSearch.PerformLayout();
       this.menuStrip1.ResumeLayout(false);
       this.menuStrip1.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.statusBarPanel1)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
     }
 
+    private System.Windows.Forms.StatusBarPanel statusBarPanel1;
+
     private System.Windows.Forms.Button btnComplete;
 
-    private System.Windows.Forms.StatusBar statusBar1;
+    private System.Windows.Forms.StatusBar statusBar;
 
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;

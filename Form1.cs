@@ -12,54 +12,142 @@ namespace NPC_MakerSpace_CheckIn
 {
     class Visitor
     {
-        
+        private string id;              // Student ID (prefered), DL#, Name, etc...
+        private string reason;          // From the list of reasons
+        private string reason_detail;   // Only applies for the class(department, course number, description, instructor name) and the student organization(org name)
+        private string time;            // Epoch time
+        private int    est_hours;       // Estimated time being in the space
+
+        public Visitor(string id, string reason, string reasonDetail, string time, int estHours)
+        {
+            this.id = id ?? throw new ArgumentNullException(nameof(id));
+            this.reason = reason ?? throw new ArgumentNullException(nameof(reason));
+            reason_detail = reasonDetail ?? throw new ArgumentNullException(nameof(reasonDetail));
+            this.time = time ?? throw new ArgumentNullException(nameof(time));
+            est_hours = estHours;
+        }
+
+        public string Id
+        {
+            get => id;
+            set => id = value;
+        }
+
+        public string Reason
+        {
+            get => reason;
+            set => reason = value;
+        }
+
+        public string ReasonDetail
+        {
+            get => reason_detail;
+            set => reason_detail = value;
+        }
+
+        public string Time
+        {
+            get => time;
+            set => time = value;
+        }
+
+        public int EstHours
+        {
+            get => est_hours;
+            set => est_hours = value;
+        }
     }
 
-    class Class
+    class NPC_Class
     {
-        // AcadOrg,
-        // ClassNbr,
-        // CourseDescription,
-        // CourseID,
-        // Last,
-        // CourseType,
-        // MeetingDays,
-        // StartTime,
-        // EndTime,
-        // FacilID,
-        // StartDate,
-        // EndDate,
-        // EnrlStat,
-        // CapEnrl,
-        // TotEnrl,
-        // WaitTot,
-        // Session,
-        // Location,
-        // Mode
-        private String AcadOrg           = null;
-        private String ClassNbr          = null;
-        private String CourseDescription = null;
-        private String CourseID          = null;
-        private String Last              = null;
-        private String CourseType        = null;
-        private String MeetingDay        = null;
-        private String StartTime         = null;
-        private String EndTime           = null;
-        private String FacilID           = null;
-        private String StartDate         = null;
-        private String EndDate           = null;
-        private String EnrlStat          = null;
-        private String CapEnrl           = null;
-        private String TotEnrl           = null;
-        private String WaitTot           = null;
-        private String Session           = null;
-        private String Location          = null;
-        private String Mode              = null;
+        private String  AcademicOrganization;       // Department
+        private int     ClassNumber = 0;            // 
+        private String  CourseDescription;          // 
+        private String  CourseID;                   // 
+        private float   CreditHours = 0.0f;         // (Not listed/named in the header)
+        private String  InstructorLastName;         // 
+        private String  CourseType;                 // [ Blended, IndepStudy, Internship, Lab, Online, Tradition, Tradtnl, Web-Enhanc ]
+        private String  MeetingDay;                 // 
+        private String  StartTime;                  // 
+        private String  EndTime;                    // 
+        private String  FacilityID;                 // 
+        private String  StartDate;                  // 
+        private String  EndDate;                    // 
+        private Boolean EnrolmentStatus = false;    // [ Open, Closed ] Course is open/closed for this semester
+        private int     CapEnrolment = 0;           // Total Students that can enrol for the class
+        private int     TotalEnrolled = 0;          // Total Students Enrolled for the class
+        private int     WaitTotal = 0;              // Total Students Waiting for the class
+        private String  Session;                    // [ REG, 8W1, 8W2 ] Regular 16 Weeks, 8-Weeks First, 8-Weeks Last
+        private String  Location;                   // [ BUSINESS, HIGHSCHOOL, HSTECH, NPCC, ONLINE, STUDNTHOME ]
+        private String  Mode;                       // UNKNOWN
+
+        // Partial Constructor with pertinent data only:
+        public NPC_Class(string academicOrganization, string courseDescription, string courseId, string instructorLastName)
+        {
+            AcademicOrganization = academicOrganization;
+            CourseDescription = courseDescription;
+            CourseID = courseId;
+            InstructorLastName = instructorLastName;
+        }
+
+        // Full constructor:
+        public NPC_Class( string academicOrganization, 
+                      int classNumber, 
+                      string courseDescription, 
+                      string courseId, 
+                      float creditHours, 
+                      string instructorLastName, 
+                      string courseType, 
+                      string meetingDay, 
+                      string startTime, 
+                      string endTime, 
+                      string facilityId, 
+                      string startDate, 
+                      string endDate, 
+                      bool enrolmentStatus, 
+                      int capEnrolment, 
+                      int totalEnrolled, 
+                      int waitTotal, 
+                      string session, 
+                      string location, 
+                      string mode)
+        {
+            AcademicOrganization = academicOrganization;
+            ClassNumber = classNumber;
+            CourseDescription = courseDescription;
+            CourseID = courseId;
+            CreditHours = creditHours;
+            InstructorLastName = instructorLastName;
+            CourseType = courseType;
+            MeetingDay = meetingDay;
+            StartTime = startTime;
+            EndTime = endTime;
+            FacilityID = facilityId;
+            StartDate = startDate;
+            EndDate = endDate;
+            EnrolmentStatus = enrolmentStatus;
+            CapEnrolment = capEnrolment;
+            TotalEnrolled = totalEnrolled;
+            WaitTotal = waitTotal;
+            Session = session;
+            Location = location;
+            Mode = mode;
+        }
+
+        public string returnAcademicOrganization => AcademicOrganization;
+
+        public string returnCourseDescription => CourseDescription;
+
+        public string returnCourseId => CourseID;
+
+        public string returnInstructorLastName => InstructorLastName;
     }
     public partial class Form1 : Form
     {
         private string[] _classes;
         private string[] _orgs;
+        private List<NPC_Class> class_list = new List<NPC_Class>();
+        private List<Visitor> visitor_list;
         enum Reasons : ushort
         {
             Null = 0,
@@ -110,8 +198,25 @@ namespace NPC_MakerSpace_CheckIn
         {
             try
             {
+                // Old text file:
                 _classes = System.IO.File.ReadAllLines(@"C:\Users\decyple\class_list.dat");
                 _orgs    = System.IO.File.ReadAllLines(@"C:\Users\decyple\student_orgs.dat");
+                
+                // Read the new class list file:
+                int i = 1;
+                var classFile = System.IO.File.ReadAllLines(@"C:\Users\decyple\class_list_new.dat");
+                foreach ( var course in classFile )
+                {
+                    var classDataColumn = course.Split('~');
+                    NPC_Class tempClass = new NPC_Class(classDataColumn[0], classDataColumn[2], classDataColumn[3], classDataColumn[5]);
+                    class_list.Add(tempClass);
+
+                    statusBar.Text = @"Reading class " + i + @"/" + classFile.Length;
+                    i++;
+                }
+
+                // Display how many classes were loaded:
+                statusBar.Text = classFile.Length + @"classes loaded";
             }
             catch (Exception e)
             {
