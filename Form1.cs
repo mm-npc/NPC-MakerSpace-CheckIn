@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,25 +93,25 @@ namespace NPC_MakerSpace_CheckIn
 
         // Full constructor:
         public NPC_Class( string academicOrganization, 
-                      int classNumber, 
-                      string courseDescription, 
-                      string courseId, 
-                      float creditHours, 
-                      string instructorLastName, 
-                      string courseType, 
-                      string meetingDay, 
-                      string startTime, 
-                      string endTime, 
-                      string facilityId, 
-                      string startDate, 
-                      string endDate, 
-                      bool enrolmentStatus, 
-                      int capEnrolment, 
-                      int totalEnrolled, 
-                      int waitTotal, 
-                      string session, 
-                      string location, 
-                      string mode)
+                          int classNumber, 
+                          string courseDescription, 
+                          string courseId, 
+                          float creditHours, 
+                          string instructorLastName, 
+                          string courseType, 
+                          string meetingDay, 
+                          string startTime, 
+                          string endTime, 
+                          string facilityId, 
+                          string startDate, 
+                          string endDate, 
+                          bool enrolmentStatus, 
+                          int capEnrolment, 
+                          int totalEnrolled, 
+                          int waitTotal, 
+                          string session, 
+                          string location, 
+                          string mode)
         {
             AcademicOrganization = academicOrganization;
             ClassNumber = classNumber;
@@ -134,20 +135,23 @@ namespace NPC_MakerSpace_CheckIn
             Mode = mode;
         }
 
-        public string returnAcademicOrganization => AcademicOrganization;
+        public string getAcademicOrganization => AcademicOrganization;
 
-        public string returnCourseDescription => CourseDescription;
+        public string getCourseDescription => CourseDescription;
 
-        public string returnCourseId => CourseID;
+        public string getCourseId => CourseID;
 
-        public string returnInstructorLastName => InstructorLastName;
+        public string getInstructorLastName => InstructorLastName;
     }
+    
     public partial class Form1 : Form
     {
-        private string[] _classes;
         private string[] _orgs;
         private List<NPC_Class> class_list = new List<NPC_Class>();
-        private List<Visitor> visitor_list;
+        private List<Visitor> visitor_list = new List<Visitor>();
+        private List<Visitor> visitor_in_space_list = new List<Visitor>();
+        private List<NPC_Class> classQryResult = new List<NPC_Class>();
+
         enum Reasons : ushort
         {
             Null = 0,
@@ -198,8 +202,7 @@ namespace NPC_MakerSpace_CheckIn
         {
             try
             {
-                // Old text file:
-                _classes = System.IO.File.ReadAllLines(@"C:\Users\decyple\class_list.dat");
+                // Open the Student Organization File:
                 _orgs    = System.IO.File.ReadAllLines(@"C:\Users\decyple\student_orgs.dat");
                 
                 // Read the new class list file:
@@ -207,16 +210,22 @@ namespace NPC_MakerSpace_CheckIn
                 var classFile = System.IO.File.ReadAllLines(@"C:\Users\decyple\class_list_new.dat");
                 foreach ( var course in classFile )
                 {
+                    // Split the line via the tilda delimiter:
                     var classDataColumn = course.Split('~');
+                    
+                    // Instantiate the new NPC_Class object:
                     NPC_Class tempClass = new NPC_Class(classDataColumn[0], classDataColumn[2], classDataColumn[3], classDataColumn[5]);
+                    
+                    // Add the class to the list:
                     class_list.Add(tempClass);
 
+                    // Update the statusbar as to the progress:
                     statusBar.Text = @"Reading class " + i + @"/" + classFile.Length;
                     i++;
                 }
 
                 // Display how many classes were loaded:
-                statusBar.Text = classFile.Length + @"classes loaded";
+                statusBar.Text = classFile.Length + @" classes loaded";
             }
             catch (Exception e)
             {
@@ -224,16 +233,6 @@ namespace NPC_MakerSpace_CheckIn
             }
         }
 
-        private void load_classes()
-        {
-            
-        }
-
-        private void load_orgs()
-        {
-            
-        }
-        
         // Loop through each of the reasons, convert them to a string, then add them to the check box:
         private void load_cbReason()
         {
@@ -241,6 +240,14 @@ namespace NPC_MakerSpace_CheckIn
             {
                 cbReason.Items.Add(ReasonToString(i));
             }
+        }
+
+        private string FormatListBoxEntry(string courseDescription, string instructorLastName)
+        {
+            // 30 characters wide:
+            while(courseDescription.Length < 30)
+                courseDescription += ' ';
+            return courseDescription + @" - " + instructorLastName;
         }
 
         // Add the btnSearch click functionality and also error proofing:
@@ -252,26 +259,34 @@ namespace NPC_MakerSpace_CheckIn
                     MessageBox.Show(@"Please enter a search term...");
                 else
                 {
-                    string[] result = { "" };
-                    if (cbReason.SelectedIndex == (int)Reasons.Class)
-                    {
-                        // Query the class list using the search term and find all entries that match: 
-                        result = Array.FindAll(_classes, element => element.ToLower().Contains(tbSearch.Text.ToLower()));
-                    }
-                    else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
-                    {
-                        // Query the orgs list using the search term and find all entries that match: 
-                        result = Array.FindAll(_orgs, element => element.ToLower().Contains(tbSearch.Text.ToLower()));
-                    }
-
                     // Clear the list to start afresh:
                     lbClassList.Items.Clear();
 
-                    // If we found classes, add them. Otherwise, notify the user no entries were found:
-                    if (result.Length != 0)
-                        lbClassList.Items.AddRange(result.ToArray<object>());
-                    else
-                        lbClassList.Items.Add(@"No results found...");
+                    // If we are searching for a class:
+                    if (cbReason.SelectedIndex == (int)Reasons.Class)
+                    {
+                        // Query the class list using the search term and find all entries that match: 
+                        classQryResult = class_list.FindAll(element => element.getCourseDescription.ToLower().Contains(tbSearch.Text.ToLower()));
+                        
+                        // If we found classes, add them. Otherwise, notify the user no entries were found:
+                        if (classQryResult.Count != 0)
+                            foreach (var classElement in classQryResult)
+                                lbClassList.Items.Add(FormatListBoxEntry(classElement.getCourseDescription, classElement.getInstructorLastName));
+                        else
+                            lbClassList.Items.Add(@"No results found...");
+                    }
+                    // If we are searching for a Student Organization:
+                    else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
+                    {
+                        // Query the orgs list using the search term and find all entries that match: 
+                        string[] orgsQryResult = Array.FindAll(_orgs, element => element.ToLower().Contains(tbSearch.Text.ToLower()));
+                        
+                        // If we found classes, add them. Otherwise, notify the user no entries were found:
+                        if (orgsQryResult.Length != 0)
+                            lbClassList.Items.AddRange(orgsQryResult.ToArray<object>());
+                        else
+                            lbClassList.Items.Add(@"No results found...");
+                    }
                 }
             }
             catch (ArgumentNullException e2)
@@ -301,8 +316,8 @@ namespace NPC_MakerSpace_CheckIn
             tbEstHours.Text = "";
             cbInOut.Checked = false;
             cbInOut.Text = @"In/Out";
-            gbSearch.Visible = false;
         }
+        
         private void cbReason_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Clear the list and search box to start afresh:
@@ -311,12 +326,12 @@ namespace NPC_MakerSpace_CheckIn
             
             switch (cbReason.SelectedIndex)
             {
-                case (int)Reasons.Null:                     // Blank
+                case (int)Reasons.Null:                                                 // Blank
                     // Search isn't needed for this reason:
                     gbSearch.Enabled = false;
 
                     break;                
-                case (int)Reasons.Consultation:             // Consultation
+                case (int)Reasons.Consultation:                                         // Consultation
                     // Search isn't needed for this reason:
                     gbSearch.Enabled = false;
 
@@ -324,14 +339,15 @@ namespace NPC_MakerSpace_CheckIn
                     tbEstHours.Text = 2.ToString();
                     
                     break;
-                case (int)Reasons.PersonalProject:         // Personal Project
+                case (int)Reasons.PersonalProject:                                      // Personal Project
                     // Search isn't needed for this reason:
                     gbSearch.Enabled = false;
 
                     // Set the default hours for this category:
                     tbEstHours.Text = 2.ToString();
+                    
                     break;
-                case (int)Reasons.Class:                    // Class
+                case (int)Reasons.Class:                                                // Class
                     // Enable the search functionality to search the class list:
                     gbSearch.Enabled = true;
                     
@@ -339,7 +355,7 @@ namespace NPC_MakerSpace_CheckIn
                     tbEstHours.Text = 1.ToString();
 
                     break;
-                case (int)Reasons.StudentOrgProject:     // Student Org Project
+                case (int)Reasons.StudentOrgProject:                                    // Student Org Project
                     // Enable the search functionality to search the org list:
                     gbSearch.Enabled = true;
                     
@@ -350,7 +366,7 @@ namespace NPC_MakerSpace_CheckIn
                     lbClassList.Items.AddRange(_orgs);
                     
                     break;
-                case (int)Reasons.Workshop:                 // Workshop
+                case (int)Reasons.Workshop:                                             // Workshop
                     // Search isn't needed for this reason:
                     gbSearch.Enabled = false;
                     
@@ -358,7 +374,7 @@ namespace NPC_MakerSpace_CheckIn
                     tbEstHours.Text = 4.ToString();
                     
                     break;
-                case (int)Reasons.Commission:               // Commission
+                case (int)Reasons.Commission:                                           // Commission
                     // Search isn't needed for this reason:
                     gbSearch.Enabled = false;
                     
@@ -371,29 +387,59 @@ namespace NPC_MakerSpace_CheckIn
 
         // This function will write the data to a data file. Later there will be several files written. This includes a
         // txt log file, excel spreadsheet, and others that have yet to be determined:
-        private void WriteData()
+        private void WriteData(Visitor v)
         {
-            MessageBox.Show(@"[TODO] Write data...");
+            // Set the path to the file:
+            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // Format the text for output:
+            string writeText = v.Id + '~' + v.Reason + '~' + v.ReasonDetail + '~' + v.Time + '~' + v.EstHours + Environment.NewLine;
+            
+            // Write the text to a new file named "NPC_MakerSpace_Check_In_Out.dat".
+            File.AppendAllText(Path.Combine(docPath, "NPC_MakerSpace_Check_In_Out.dat"), writeText);
         }
 
         // This function will check several factors to verify the data enter is correct and in the form needed to be
         // stored later:
-        private void DataValidation()
+        private bool DataValidation(Visitor v)
         {
             MessageBox.Show(@"[TODO] Validate data...");
+            
+            // Check data...
+            
+            return true;
         }
 
         // Finish by validating the forms fully filled-out, the data is written, and then reset:
         private void btnComplete_Click(object sender, EventArgs e)
         {
+            // Get the epoch timestamp:
+            var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+            string reason_detail = "";
+            // Get the class:
+            if (cbReason.SelectedIndex == (int)Reasons.Class)
+            {
+                reason_detail = classQryResult[lbClassList.SelectedIndex].getCourseDescription;
+            }
+            // Get the Student Organization:
+            else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
+            {
+                reason_detail = lbClassList.Items[lbClassList.SelectedIndex].ToString();
+            }
+
+            // Create the visitor class object:
+            Visitor visitor = new Visitor(tbID.Text, cbReason.Items[cbReason.SelectedIndex].ToString(), reason_detail, unixTimestamp.ToString(), int.Parse(tbEstHours.Text));
+            
             // Validate all fields are populated:
-            DataValidation();
+            if (DataValidation(visitor))
+            {
+                // Write the data to the file:
+                WriteData(visitor);
             
-            // Write the data to the file:
-            WriteData();
-            
-            // Reset the form to the default values:
-            ResetForm();
+                // Reset the form to the default values:
+                ResetForm();
+            }
         }
 
         // This provides the same functionality as pressing the search button by entering the enter key:
@@ -401,6 +447,11 @@ namespace NPC_MakerSpace_CheckIn
         {
             if (e.KeyValue == (char)13)
                 btnSearch.PerformClick();
+        }
+
+        private void onScreenKeyboardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(@"C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe");
         }
     }
 }

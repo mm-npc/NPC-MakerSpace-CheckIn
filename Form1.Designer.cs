@@ -55,8 +55,9 @@
       this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.statusBar = new System.Windows.Forms.StatusBar();
-      this.btnComplete = new System.Windows.Forms.Button();
       this.statusBarPanel1 = new System.Windows.Forms.StatusBarPanel();
+      this.btnComplete = new System.Windows.Forms.Button();
+      this.onScreenKeyboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.gbSearch.SuspendLayout();
       this.menuStrip1.SuspendLayout();
@@ -157,6 +158,7 @@
       // 
       // lbClassList
       // 
+      this.lbClassList.Font = new System.Drawing.Font("InputMono", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.lbClassList.FormattingEnabled = true;
       this.lbClassList.Location = new System.Drawing.Point(30, 70);
       this.lbClassList.Name = "lbClassList";
@@ -214,7 +216,7 @@
       // 
       // editToolStripMenuItem
       // 
-      this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this.copyToolStripMenuItem, this.copyToolStripMenuItem1, this.pasteToolStripMenuItem, this.toolStripSeparator1, this.settingsToolStripMenuItem });
+      this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this.copyToolStripMenuItem, this.copyToolStripMenuItem1, this.pasteToolStripMenuItem, this.toolStripSeparator1, this.settingsToolStripMenuItem, this.onScreenKeyboardToolStripMenuItem });
       this.editToolStripMenuItem.Name = "editToolStripMenuItem";
       this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
       this.editToolStripMenuItem.Text = "Edit";
@@ -222,30 +224,30 @@
       // copyToolStripMenuItem
       // 
       this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-      this.copyToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+      this.copyToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
       this.copyToolStripMenuItem.Text = "Cut";
       // 
       // copyToolStripMenuItem1
       // 
       this.copyToolStripMenuItem1.Name = "copyToolStripMenuItem1";
-      this.copyToolStripMenuItem1.Size = new System.Drawing.Size(116, 22);
+      this.copyToolStripMenuItem1.Size = new System.Drawing.Size(183, 22);
       this.copyToolStripMenuItem1.Text = "Copy";
       // 
       // pasteToolStripMenuItem
       // 
       this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-      this.pasteToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+      this.pasteToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
       this.pasteToolStripMenuItem.Text = "Paste";
       // 
       // toolStripSeparator1
       // 
       this.toolStripSeparator1.Name = "toolStripSeparator1";
-      this.toolStripSeparator1.Size = new System.Drawing.Size(113, 6);
+      this.toolStripSeparator1.Size = new System.Drawing.Size(180, 6);
       // 
       // settingsToolStripMenuItem
       // 
       this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-      this.settingsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+      this.settingsToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
       this.settingsToolStripMenuItem.Text = "Settings";
       // 
       // helpToolStripMenuItem
@@ -269,6 +271,11 @@
       this.statusBar.Size = new System.Drawing.Size(542, 22);
       this.statusBar.TabIndex = 17;
       // 
+      // statusBarPanel1
+      // 
+      this.statusBarPanel1.Name = "statusBarPanel1";
+      this.statusBarPanel1.Text = "statusBarPanel1";
+      // 
       // btnComplete
       // 
       this.btnComplete.Location = new System.Drawing.Point(12, 295);
@@ -279,10 +286,12 @@
       this.btnComplete.UseVisualStyleBackColor = true;
       this.btnComplete.Click += new System.EventHandler(this.btnComplete_Click);
       // 
-      // statusBarPanel1
+      // onScreenKeyboardToolStripMenuItem
       // 
-      this.statusBarPanel1.Name = "statusBarPanel1";
-      this.statusBarPanel1.Text = "statusBarPanel1";
+      this.onScreenKeyboardToolStripMenuItem.Name = "onScreenKeyboardToolStripMenuItem";
+      this.onScreenKeyboardToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+      this.onScreenKeyboardToolStripMenuItem.Text = "On-Screen Keyboard";
+      this.onScreenKeyboardToolStripMenuItem.Click += new System.EventHandler(this.onScreenKeyboardToolStripMenuItem_Click);
       // 
       // Form1
       // 
@@ -313,6 +322,8 @@
       this.ResumeLayout(false);
       this.PerformLayout();
     }
+
+    private System.Windows.Forms.ToolStripMenuItem onScreenKeyboardToolStripMenuItem;
 
     private System.Windows.Forms.StatusBarPanel statusBarPanel1;
 
