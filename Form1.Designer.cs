@@ -52,12 +52,13 @@
       this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
       this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.onScreenKeyboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.statusBar = new System.Windows.Forms.StatusBar();
       this.statusBarPanel1 = new System.Windows.Forms.StatusBarPanel();
       this.btnComplete = new System.Windows.Forms.Button();
-      this.onScreenKeyboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.flpCheckOutList = new System.Windows.Forms.FlowLayoutPanel();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.gbSearch.SuspendLayout();
       this.menuStrip1.SuspendLayout();
@@ -196,7 +197,7 @@
       this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.fileToolStripMenuItem, this.editToolStripMenuItem, this.helpToolStripMenuItem });
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.Name = "menuStrip1";
-      this.menuStrip1.Size = new System.Drawing.Size(542, 24);
+      this.menuStrip1.Size = new System.Drawing.Size(927, 24);
       this.menuStrip1.TabIndex = 16;
       this.menuStrip1.Text = "menuStrip1";
       // 
@@ -250,6 +251,13 @@
       this.settingsToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
       this.settingsToolStripMenuItem.Text = "Settings";
       // 
+      // onScreenKeyboardToolStripMenuItem
+      // 
+      this.onScreenKeyboardToolStripMenuItem.Name = "onScreenKeyboardToolStripMenuItem";
+      this.onScreenKeyboardToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+      this.onScreenKeyboardToolStripMenuItem.Text = "On-Screen Keyboard";
+      this.onScreenKeyboardToolStripMenuItem.Click += new System.EventHandler(this.onScreenKeyboardToolStripMenuItem_Click);
+      // 
       // helpToolStripMenuItem
       // 
       this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this.aboutToolStripMenuItem });
@@ -268,7 +276,7 @@
       this.statusBar.Location = new System.Drawing.Point(0, 349);
       this.statusBar.Name = "statusBar";
       this.statusBar.Panels.AddRange(new System.Windows.Forms.StatusBarPanel[] { this.statusBarPanel1 });
-      this.statusBar.Size = new System.Drawing.Size(542, 22);
+      this.statusBar.Size = new System.Drawing.Size(927, 22);
       this.statusBar.TabIndex = 17;
       // 
       // statusBarPanel1
@@ -286,18 +294,20 @@
       this.btnComplete.UseVisualStyleBackColor = true;
       this.btnComplete.Click += new System.EventHandler(this.btnComplete_Click);
       // 
-      // onScreenKeyboardToolStripMenuItem
+      // flpCheckOutList
       // 
-      this.onScreenKeyboardToolStripMenuItem.Name = "onScreenKeyboardToolStripMenuItem";
-      this.onScreenKeyboardToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-      this.onScreenKeyboardToolStripMenuItem.Text = "On-Screen Keyboard";
-      this.onScreenKeyboardToolStripMenuItem.Click += new System.EventHandler(this.onScreenKeyboardToolStripMenuItem_Click);
+      this.flpCheckOutList.AutoScroll = true;
+      this.flpCheckOutList.Location = new System.Drawing.Point(546, 34);
+      this.flpCheckOutList.Name = "flpCheckOutList";
+      this.flpCheckOutList.Size = new System.Drawing.Size(369, 298);
+      this.flpCheckOutList.TabIndex = 19;
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(542, 371);
+      this.ClientSize = new System.Drawing.Size(927, 371);
+      this.Controls.Add(this.flpCheckOutList);
       this.Controls.Add(this.btnComplete);
       this.Controls.Add(this.statusBar);
       this.Controls.Add(this.gbSearch);
@@ -322,6 +332,8 @@
       this.ResumeLayout(false);
       this.PerformLayout();
     }
+
+    private System.Windows.Forms.FlowLayoutPanel flpCheckOutList;
 
     private System.Windows.Forms.ToolStripMenuItem onScreenKeyboardToolStripMenuItem;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Deployment.Application;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -436,9 +437,46 @@ namespace NPC_MakerSpace_CheckIn
             {
                 // Write the data to the file:
                 WriteData(visitor);
+                
+                // Add the visitor to the check-out list:
+                Button tempBTN = new Button();
+                tempBTN.Text = tbID.Text;
+                tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2.png");
+                tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
+                int width = 108; 
+                int height = 108;
+                tempBTN.Size = new Size(width, height);
+                tempBTN.TextAlign = ContentAlignment.BottomCenter;
+                tempBTN.TextImageRelation = TextImageRelation.ImageAboveText;
+                tempBTN.Parent = this;
+                tempBTN.Click += new EventHandler(UserCheckOut);
+                flpCheckOutList.Controls.Add(tempBTN);
+                
+                // Add the visitor to the list:
+                visitor_in_space_list.Add(visitor);
             
                 // Reset the form to the default values:
                 ResetForm();
+            }
+        }
+
+        //private void userCheckOut(string userID)
+        private void UserCheckOut(object sender, EventArgs e)
+        {
+            // Find the visitor in the list by Querying the visitor_in_space_list list: 
+            Visitor visitorQryResult = visitor_in_space_list.Find(element => element.Id.ToLower().Contains((sender as Button).Text.ToLower()));
+            
+            // Check the visitor out by removing them from the list:
+            if (visitorQryResult == null)
+                // Cant find the user:
+                MessageBox.Show(@"We got problems...");
+            else
+            {
+                // Remove the visitor from the list:
+                visitor_in_space_list.Remove(visitorQryResult);
+
+                // Remove the button by disposing of it:
+                (sender as Button).Dispose();
             }
         }
 
