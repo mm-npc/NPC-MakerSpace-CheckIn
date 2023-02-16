@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Deployment.Application;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
+using Timer = System.Timers.Timer;
 
 namespace NPC_MakerSpace_CheckIn
 {
@@ -196,6 +200,27 @@ namespace NPC_MakerSpace_CheckIn
             ReadFiles();
             
             load_cbReason();
+
+            // Logout Scheduler:
+            {
+                // // Define when to run the action in seconds. USED FOR TESTING:
+                // DateTime midnight = DateTime.Now.AddSeconds(20);
+                
+                // Define when to run the action (midnight):
+                DateTime midnight = DateTime.Now.AddDays(1);
+                
+                // Get the milliseconds till the action needs to be executed:
+                double millisecondsTillMidnight = midnight.Subtract(DateTime.Now).TotalMilliseconds;
+                
+                // Create a timer set for midnight:
+                Timer checkForTime = new Timer(millisecondsTillMidnight);
+                
+                // Set the event handler to run based on the timer:
+                checkForTime.Elapsed += new ElapsedEventHandler(Scheduler);
+                
+                // Enable the timer:
+                checkForTime.Enabled = true;
+            }
         }
 
         // Read the files for the classes and the orgs into global variables:
@@ -490,6 +515,31 @@ namespace NPC_MakerSpace_CheckIn
         private void onScreenKeyboardToolStripMenuItem_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(@"C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe");
+        }
+
+        private void GenerateReport()
+        {
+            MessageBox.Show(@"REPORT!");
+        }
+
+        private void LogOutAll()
+        {
+            MessageBox.Show(@"LOG OUT ALL!");
+            
+            // Check for any visitors still logged in:
+            
+            // Check their default hours:
+            
+            // Logout the visitors the default amount of hours after login:
+        }
+        
+        void Scheduler(object sender, ElapsedEventArgs e)
+        {
+            // Log out all user that are still logged in.
+            LogOutAll();
+            
+            // Generate the daily report:
+            GenerateReport();
         }
     }
 }
