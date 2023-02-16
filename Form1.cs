@@ -441,7 +441,7 @@ namespace NPC_MakerSpace_CheckIn
                 // Add the visitor to the check-out list:
                 Button tempBTN = new Button();
                 tempBTN.Text = tbID.Text;
-                tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2.png");
+                tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2a.png");
                 tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
                 int width = 108; 
                 int height = 108;
