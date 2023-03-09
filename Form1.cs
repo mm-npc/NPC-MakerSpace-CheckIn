@@ -1,99 +1,145 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Deployment.Application;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using ContentAlignment = System.Drawing.ContentAlignment;
 using Timer = System.Timers.Timer;
 
 namespace NPC_MakerSpace_CheckIn
 {
     class Visitor
     {
-        private string id;              // Student ID (prefered), DL#, Name, etc...
-        private string reason;          // From the list of reasons
-        private string reason_detail;   // Only applies for the class(department, course number, description, instructor name) and the student organization(org name)
-        private string time;            // Epoch time
-        private int    est_hours;       // Estimated time being in the space
-
-        public Visitor(string id, string reason, string reasonDetail, string time, int estHours)
+        public enum VisitorDirection : ushort
         {
-            this.id = id ?? throw new ArgumentNullException(nameof(id));
-            this.reason = reason ?? throw new ArgumentNullException(nameof(reason));
-            reason_detail = reasonDetail ?? throw new ArgumentNullException(nameof(reasonDetail));
-            this.time = time ?? throw new ArgumentNullException(nameof(time));
-            est_hours = estHours;
+            In = 0, 
+            Out = 1
+        };
+        private string           _id;              // Student ID (prefered), DL#, Name, etc...
+        private string           _reason;          // From the list of reasons
+        private string           _reasonDetail;   // Only applies for the class(department, course number, description, instructor name) and the student organization(org name)
+        private long             _time;            // Epoch time
+        private int              _estHours;       // Estimated time being in the space
+        private bool             _autoLogOut;    // Visitor had to be logged out using default hours
+        private VisitorDirection _direction;       // Visitor coming in or leaving
+
+        public Visitor() {}
+        
+        public Visitor(string id, string reason, string reasonDetail, long time, int estHours, VisitorDirection direction)
+        {
+            _id = id ?? throw new ArgumentNullException(nameof(id));
+            _reason = reason ?? throw new ArgumentNullException(nameof(reason));
+            _reasonDetail = reasonDetail ?? throw new ArgumentNullException(nameof(reasonDetail));
+            _time = time;
+            _estHours = estHours;
+            _autoLogOut = false;
+            _direction = direction;
         }
 
+        // Copy Constructor:
+        public Visitor(Visitor v)
+        {
+           _id = v._id;
+           _reason = v._reason;
+           _reasonDetail = v._reasonDetail;
+           _time = v._time;
+           _estHours = v._estHours;
+           _autoLogOut = v.AutoLogOut;
+           _direction = v._direction;
+        }
+        
+        // Copy Modify Constructor:
+        public Visitor(Visitor v, long t, VisitorDirection d, bool a)
+        {
+           _id = v._id;
+           _reason = v._reason;
+           _reasonDetail = v._reasonDetail;
+           _time = t;
+           _estHours = v._estHours;
+           _autoLogOut = a;
+           _direction = d;
+        }
+
+        public static Visitor GetNewInstance(Visitor v, long t, VisitorDirection d, bool a)
+        {
+            return new Visitor(v, t, d, a);
+        }
+        
         public string Id
         {
-            get => id;
-            set => id = value;
+            get => _id;
+            set => _id = value;
         }
 
         public string Reason
         {
-            get => reason;
-            set => reason = value;
+            get => _reason;
+            set => _reason = value;
         }
 
         public string ReasonDetail
         {
-            get => reason_detail;
-            set => reason_detail = value;
+            get => _reasonDetail;
+            set => _reasonDetail = value;
         }
 
-        public string Time
+        public long Time
         {
-            get => time;
-            set => time = value;
+            get => _time;
+            set => _time = value;
         }
 
         public int EstHours
         {
-            get => est_hours;
-            set => est_hours = value;
+            get => _estHours;
+            set => _estHours = value;
+        }
+
+        public bool AutoLogOut
+        {
+            get => _autoLogOut;
+            set => _autoLogOut = value;
+        }
+
+        public VisitorDirection Direction
+        {
+            get => _direction;
+            set => _direction = value;
         }
     }
 
     class NPC_Class
     {
-        private String  AcademicOrganization;       // Department
-        private int     ClassNumber = 0;            // 
-        private String  CourseDescription;          // 
-        private String  CourseID;                   // 
-        private float   CreditHours = 0.0f;         // (Not listed/named in the header)
-        private String  InstructorLastName;         // 
-        private String  CourseType;                 // [ Blended, IndepStudy, Internship, Lab, Online, Tradition, Tradtnl, Web-Enhanc ]
-        private String  MeetingDay;                 // 
-        private String  StartTime;                  // 
-        private String  EndTime;                    // 
-        private String  FacilityID;                 // 
-        private String  StartDate;                  // 
-        private String  EndDate;                    // 
-        private Boolean EnrolmentStatus = false;    // [ Open, Closed ] Course is open/closed for this semester
-        private int     CapEnrolment = 0;           // Total Students that can enrol for the class
-        private int     TotalEnrolled = 0;          // Total Students Enrolled for the class
-        private int     WaitTotal = 0;              // Total Students Waiting for the class
-        private String  Session;                    // [ REG, 8W1, 8W2 ] Regular 16 Weeks, 8-Weeks First, 8-Weeks Last
-        private String  Location;                   // [ BUSINESS, HIGHSCHOOL, HSTECH, NPCC, ONLINE, STUDNTHOME ]
-        private String  Mode;                       // UNKNOWN
+        private string  _academicOrganization;       // Department
+        private int     _classNumber;                // 
+        private string  _courseDescription;          // 
+        private string  _courseId;                   // 
+        private float   _creditHours;                // (Not listed/named in the header)
+        private string  _instructorLastName;         // 
+        private string  _courseType;                 // [ Blended, IndepStudy, Internship, Lab, Online, Tradition, Tradtnl, Web-Enhanc ]
+        private string  _meetingDay;                 // 
+        private string  _startTime;                  // 
+        private string  _endTime;                    // 
+        private string  _facilityId;                 // 
+        private string  _startDate;                  // 
+        private string  _endDate;                    // 
+        private bool    _enrolmentStatus;            // [ Open, Closed ] Course is open/closed for this semester
+        private int     _capEnrolment;               // Total Students that can enrol for the class
+        private int     _totalEnrolled;              // Total Students Enrolled for the class
+        private int     _waitTotal;                  // Total Students Waiting for the class
+        private string  _session;                    // [ REG, 8W1, 8W2 ] Regular 16 Weeks, 8-Weeks First, 8-Weeks Last
+        private string  _location;                   // [ BUSINESS, HIGHSCHOOL, HSTECH, NPCC, ONLINE, STUDNTHOME ]
+        private string  _mode;                       // UNKNOWN
 
         // Partial Constructor with pertinent data only:
         public NPC_Class(string academicOrganization, string courseDescription, string courseId, string instructorLastName)
         {
-            AcademicOrganization = academicOrganization;
-            CourseDescription = courseDescription;
-            CourseID = courseId;
-            InstructorLastName = instructorLastName;
+            _academicOrganization = academicOrganization;
+            _courseDescription = courseDescription;
+            _courseId = courseId;
+            _instructorLastName = instructorLastName;
         }
 
         // Full constructor:
@@ -118,35 +164,35 @@ namespace NPC_MakerSpace_CheckIn
                           string location, 
                           string mode)
         {
-            AcademicOrganization = academicOrganization;
-            ClassNumber = classNumber;
-            CourseDescription = courseDescription;
-            CourseID = courseId;
-            CreditHours = creditHours;
-            InstructorLastName = instructorLastName;
-            CourseType = courseType;
-            MeetingDay = meetingDay;
-            StartTime = startTime;
-            EndTime = endTime;
-            FacilityID = facilityId;
-            StartDate = startDate;
-            EndDate = endDate;
-            EnrolmentStatus = enrolmentStatus;
-            CapEnrolment = capEnrolment;
-            TotalEnrolled = totalEnrolled;
-            WaitTotal = waitTotal;
-            Session = session;
-            Location = location;
-            Mode = mode;
+            _academicOrganization = academicOrganization;
+            _classNumber = classNumber;
+            _courseDescription = courseDescription;
+            _courseId = courseId;
+            _creditHours = creditHours;
+            _instructorLastName = instructorLastName;
+            _courseType = courseType;
+            _meetingDay = meetingDay;
+            _startTime = startTime;
+            _endTime = endTime;
+            _facilityId = facilityId;
+            _startDate = startDate;
+            _endDate = endDate;
+            _enrolmentStatus = enrolmentStatus;
+            _capEnrolment = capEnrolment;
+            _totalEnrolled = totalEnrolled;
+            _waitTotal = waitTotal;
+            _session = session;
+            _location = location;
+            _mode = mode;
         }
 
-        public string getAcademicOrganization => AcademicOrganization;
+        public string GetAcademicOrganization => _academicOrganization;
 
-        public string getCourseDescription => CourseDescription;
+        public string GetCourseDescription => _courseDescription;
 
-        public string getCourseId => CourseID;
+        public string GetCourseId => _courseId;
 
-        public string getInstructorLastName => InstructorLastName;
+        public string GetInstructorLastName => _instructorLastName;
     }
     
     public partial class Form1 : Form
@@ -154,8 +200,10 @@ namespace NPC_MakerSpace_CheckIn
         private string[] _orgs;
         private List<NPC_Class> class_list = new List<NPC_Class>();
         private List<Visitor> visitor_list = new List<Visitor>();
-        private List<Visitor> visitor_in_space_list = new List<Visitor>();
         private List<NPC_Class> classQryResult = new List<NPC_Class>();
+        
+        TimeSpan midnight;
+        double millisecondsTillMidnight;
 
         enum Reasons : ushort
         {
@@ -166,7 +214,7 @@ namespace NPC_MakerSpace_CheckIn
             StudentOrgProject = 4,
             Workshop = 5,
             Commission = 6,
-            MAX = 7
+            Max = 7
         }
         
         // Convert the enum to a string variable:
@@ -203,15 +251,15 @@ namespace NPC_MakerSpace_CheckIn
 
             // Logout Scheduler:
             {
-                // // Define when to run the action in seconds. USED FOR TESTING:
-                // DateTime midnight = DateTime.Now.AddSeconds(20);
+                // Define when to run the action in seconds. USED FOR TESTING:
+                //DateTime midnight2 = DateTime.Now.AddSeconds(45);
                 
-                // Define when to run the action (midnight):
-                DateTime midnight = DateTime.Now.AddDays(1);
+                // // Define when to run the action (midnight):
+                midnight = DateTime.Today.AddDays(1.0) - DateTime.Now;
                 
                 // Get the milliseconds till the action needs to be executed:
-                double millisecondsTillMidnight = midnight.Subtract(DateTime.Now).TotalMilliseconds;
-                
+                millisecondsTillMidnight = midnight.TotalMilliseconds;
+
                 // Create a timer set for midnight:
                 Timer checkForTime = new Timer(millisecondsTillMidnight);
                 
@@ -220,6 +268,46 @@ namespace NPC_MakerSpace_CheckIn
                 
                 // Enable the timer:
                 checkForTime.Enabled = true;
+                checkForTime.Start();
+            }
+
+            {
+                // // TODO: REMOVE TEMP VISITORS!!!
+                // Visitor tempVisitor0_in  = new Visitor("0", "0 In", "Reason Detail 0", long.Parse("1677000000"), 1, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor0_out = new Visitor("0", "0 Out", "Reason Detail 0", long.Parse("1677000001"), 1, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor0_in);
+                // AddVisitorAvatarButton("0");
+                // visitor_list.Add(tempVisitor0_out);
+                //
+                // Visitor tempVisitor1_in  = new Visitor("1", "1 In", "Reason Detail 1", long.Parse("1677000010"), 2, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor1_out = new Visitor("1", "1 Out", "Reason Detail 1", long.Parse("1677000011"), 2, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor1_in);
+                // AddVisitorAvatarButton("1");
+                // visitor_list.Add(tempVisitor1_out);
+                //
+                // Visitor tempVisitor2_in  = new Visitor("2", "2 In", "Reason Detail 2", long.Parse("1677000020"), 3, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor2_out = new Visitor("2", "2 Out", "Reason Detail 2", long.Parse("1677000021"), 3, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor2_in);
+                // AddVisitorAvatarButton("2");
+                // visitor_list.Add(tempVisitor2_out);
+                //
+                // Visitor tempVisitor3_in  = new Visitor("3", "3 In", "Reason Detail 3", long.Parse("1677000030"), 4, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor3_out = new Visitor("3", "3 Out", "Reason Detail 3", long.Parse("1677000031"), 4, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor3_in);
+                // AddVisitorAvatarButton("3");
+                // //visitor_list.Add(tempVisitor3_out);
+                //
+                // Visitor tempVisitor4_in = new Visitor("4", "4 In", "Reason Detail 4", long.Parse("1677000040"), 5, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor4_out = new Visitor("4", "4 Out", "Reason Detail 4", long.Parse("1677000041"), 5, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor4_in);
+                // AddVisitorAvatarButton("4");
+                // visitor_list.Add(tempVisitor4_out);
+                //
+                // Visitor tempVisitor01_in  = new Visitor("1", "01 In", "Reason Detail 01", long.Parse("1677000210"), 1, Visitor.VisitorDirection.In);
+                // Visitor tempVisitor01_out = new Visitor("1", "01 Out", "Reason Detail 01", long.Parse("1677000211"), 1, Visitor.VisitorDirection.Out);
+                // visitor_list.Add(tempVisitor01_in);
+                // AddVisitorAvatarButton("01");
+                // //visitor_list.Add(tempVisitor1_out);
             }
         }
 
@@ -262,7 +350,7 @@ namespace NPC_MakerSpace_CheckIn
         // Loop through each of the reasons, convert them to a string, then add them to the check box:
         private void load_cbReason()
         {
-            for (int i = 0; i < (int)Reasons.MAX - 1; i++)
+            for (int i = 0; i < (int)Reasons.Max - 1; i++)
             {
                 cbReason.Items.Add(ReasonToString(i));
             }
@@ -281,8 +369,11 @@ namespace NPC_MakerSpace_CheckIn
         {
             try
             {
-                if(string.IsNullOrEmpty(tbSearch.Text))
+                if (string.IsNullOrEmpty(tbSearch.Text))
+                {
                     MessageBox.Show(@"Please enter a search term...");
+                    ActiveControl = tbSearch;
+                }
                 else
                 {
                     // Clear the list to start afresh:
@@ -292,12 +383,13 @@ namespace NPC_MakerSpace_CheckIn
                     if (cbReason.SelectedIndex == (int)Reasons.Class)
                     {
                         // Query the class list using the search term and find all entries that match: 
-                        classQryResult = class_list.FindAll(element => element.getCourseDescription.ToLower().Contains(tbSearch.Text.ToLower()));
+                        classQryResult = class_list.FindAll(course =>
+                            course.GetCourseDescription.ToLower().Contains(tbSearch.Text.ToLower()));
                         
                         // If we found classes, add them. Otherwise, notify the user no entries were found:
                         if (classQryResult.Count != 0)
                             foreach (var classElement in classQryResult)
-                                lbClassList.Items.Add(FormatListBoxEntry(classElement.getCourseDescription, classElement.getInstructorLastName));
+                                lbClassList.Items.Add(FormatListBoxEntry(classElement.GetCourseDescription, classElement.GetInstructorLastName));
                         else
                             lbClassList.Items.Add(@"No results found...");
                     }
@@ -305,7 +397,7 @@ namespace NPC_MakerSpace_CheckIn
                     else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
                     {
                         // Query the orgs list using the search term and find all entries that match: 
-                        string[] orgsQryResult = Array.FindAll(_orgs, element => element.ToLower().Contains(tbSearch.Text.ToLower()));
+                        string[] orgsQryResult = Array.FindAll(_orgs, course => course.ToLower().Contains(tbSearch.Text.ToLower()));
                         
                         // If we found classes, add them. Otherwise, notify the user no entries were found:
                         if (orgsQryResult.Length != 0)
@@ -323,7 +415,7 @@ namespace NPC_MakerSpace_CheckIn
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void cbInOut_CheckedChanged(object sender, EventArgs e)
@@ -419,7 +511,15 @@ namespace NPC_MakerSpace_CheckIn
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             // Format the text for output:
-            string writeText = v.Id + '~' + v.Reason + '~' + v.ReasonDetail + '~' + v.Time + '~' + v.EstHours + Environment.NewLine;
+            string writeText = v.Id + '~';
+
+            string dir;
+            if (v.Direction == Visitor.VisitorDirection.In)
+                dir = "in" + '~';
+            else
+                dir = "out" + '~';
+            
+            writeText += dir + v.Reason + '~' + v.ReasonDetail + '~' + v.Time + '~' + v.EstHours + '~' + v.AutoLogOut + Environment.NewLine;
             
             // Write the text to a new file named "NPC_MakerSpace_Check_In_Out.dat".
             File.AppendAllText(Path.Combine(docPath, "NPC_MakerSpace_Check_In_Out.dat"), writeText);
@@ -429,79 +529,179 @@ namespace NPC_MakerSpace_CheckIn
         // stored later:
         private bool DataValidation(Visitor v)
         {
-            MessageBox.Show(@"[TODO] Validate data...");
+            // Check for the ID:
+            if (String.IsNullOrEmpty(v.Id))
+                MessageBox.Show(@"[ERROR] Data Validation: Need the Id...");
             
-            // Check data...
+            // Check for the Reason:
+            if (String.IsNullOrEmpty(v.Reason))
+                MessageBox.Show(@"[ERROR] Data Validation: Need the Reason...");
             
+            // Check for the Reason Detail:
+            if (String.IsNullOrEmpty(v.ReasonDetail) && (v.Reason == @"Class" || v.Reason == @"Student Org Project"))
+                MessageBox.Show(@"[ERROR] Data Validation: Need the Reason Detail...");
+            
+            // Check for the Estimated Hours:
+            if (String.IsNullOrEmpty(v.EstHours.ToString()))
+                MessageBox.Show(@"[ERROR] Data Validation: Need the Estimated Hours...");
+            
+            // Check for the Direction:
+            if (v.Direction.ToString() == @"In/Out")
+                MessageBox.Show(@"[ERROR] Data Validation: Need the Direction...");
+            
+            return true;
+        }
+
+        bool FormValidation()
+        {
+            // Check for the ID:
+            if (String.IsNullOrEmpty(tbID.Text))
+            {
+                MessageBox.Show(@"Need the Id...");
+                ActiveControl = tbID;
+                return false;
+            }
+            
+            // Check for the Reason:
+            if (cbReason.SelectedIndex == -1)
+            {
+                MessageBox.Show(@"Need the Reason...");
+                ActiveControl = cbReason;
+                return false;
+            }
+            
+            // Check for the Reason Detail:
+            if ((lbClassList.SelectedIndex == -1) && (cbReason.SelectedItem.ToString() == @"Class" || cbReason.SelectedItem.ToString() == @"Student Org Project"))
+            {
+                MessageBox.Show(@"Need the Reason Detail");
+                ActiveControl = lbClassList;
+                return false;
+            }
+            
+            // Check for the Estimated Hours:
+            if (string.IsNullOrEmpty(tbEstHours.Text))
+            {
+                MessageBox.Show(@"Need the Estimated Hours...");
+                ActiveControl = tbEstHours;
+                return false;
+            }
+            
+            // Check for the Direction:
+            if (cbInOut.Text == @"In/Out")
+            {
+                MessageBox.Show(@"Need the Direction...");
+                ActiveControl = cbInOut;
+                return false;
+            }
+
             return true;
         }
 
         // Finish by validating the forms fully filled-out, the data is written, and then reset:
         private void btnComplete_Click(object sender, EventArgs e)
         {
-            // Get the epoch timestamp:
-            var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+            if (FormValidation())
+            {
+                // Get the epoch timestamp:
+                var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            string reason_detail = "";
-            // Get the class:
-            if (cbReason.SelectedIndex == (int)Reasons.Class)
-            {
-                reason_detail = classQryResult[lbClassList.SelectedIndex].getCourseDescription;
-            }
-            // Get the Student Organization:
-            else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
-            {
-                reason_detail = lbClassList.Items[lbClassList.SelectedIndex].ToString();
-            }
+                string reasonDetail = "";
+                // Get the class:
+                if (cbReason.SelectedIndex == (int)Reasons.Class)
+                {
+                    reasonDetail = classQryResult[lbClassList.SelectedIndex].GetCourseDescription;
+                }
+                // Get the Student Organization:
+                else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
+                {
+                    reasonDetail = lbClassList.Items[lbClassList.SelectedIndex].ToString();
+                }
 
-            // Create the visitor class object:
-            Visitor visitor = new Visitor(tbID.Text, cbReason.Items[cbReason.SelectedIndex].ToString(), reason_detail, unixTimestamp.ToString(), int.Parse(tbEstHours.Text));
-            
-            // Validate all fields are populated:
-            if (DataValidation(visitor))
-            {
-                // Write the data to the file:
-                WriteData(visitor);
-                
-                // Add the visitor to the check-out list:
-                Button tempBTN = new Button();
-                tempBTN.Text = tbID.Text;
-                tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2a.png");
-                tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
-                int width = 108; 
-                int height = 108;
-                tempBTN.Size = new Size(width, height);
-                tempBTN.TextAlign = ContentAlignment.BottomCenter;
-                tempBTN.TextImageRelation = TextImageRelation.ImageAboveText;
-                tempBTN.Parent = this;
-                tempBTN.Click += new EventHandler(UserCheckOut);
-                flpCheckOutList.Controls.Add(tempBTN);
-                
-                // Add the visitor to the list:
-                visitor_in_space_list.Add(visitor);
-            
-                // Reset the form to the default values:
-                ResetForm();
+                // Define the visitors direction based on user input:
+                Visitor.VisitorDirection tempDirection;
+                if (cbInOut.Checked)
+                    tempDirection = Visitor.VisitorDirection.In;
+                else
+                    tempDirection = Visitor.VisitorDirection.Out;
+
+                // Create the visitor class object:
+                Visitor visitor = new Visitor(tbID.Text,
+                    cbReason.Items[cbReason.SelectedIndex].ToString(),
+                    reasonDetail,
+                    unixTimestamp,
+                    int.Parse(tbEstHours.Text),
+                    tempDirection);
+
+                // Validate all fields are populated:
+                if (DataValidation(visitor))
+                {
+                    // Write the data to the file:
+                    WriteData(visitor);
+
+                    // Add the button to the flp:
+                    AddVisitorAvatarButton(tbID.Text);
+
+                    // Add the visitor to the list:
+                    visitor_list.Add(visitor);
+
+                    // Reset the form to the default values:
+                    ResetForm();
+
+                    ActiveControl = tbID;
+                }
             }
         }
 
-        //private void userCheckOut(string userID)
+        private void AddVisitorAvatarButton(string id)
+        {
+            // Add the visitor to the check-out list via a flow layout panel button:
+            Button tempBTN = new Button();
+            tempBTN.Text = id;
+            tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2a.png");
+            tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
+            int width = 108; 
+            int height = 108;
+            tempBTN.Size = new Size(width, height);
+            tempBTN.TextAlign = ContentAlignment.BottomCenter;
+            tempBTN.TextImageRelation = TextImageRelation.ImageAboveText;
+            tempBTN.Parent = this;
+            tempBTN.Click += new EventHandler(UserCheckOut);
+            flpCheckOutList.Controls.Add(tempBTN);
+        }
+
+        private void RemoveVisitorAvatarButton(object sender, EventArgs e)
+        {
+            (sender as Button).Dispose();
+        }
+        
         private void UserCheckOut(object sender, EventArgs e)
         {
             // Find the visitor in the list by Querying the visitor_in_space_list list: 
-            Visitor visitorQryResult = visitor_in_space_list.Find(element => element.Id.ToLower().Contains((sender as Button).Text.ToLower()));
-            
+            Visitor visitorQryResult = visitor_list.Find(element => element.Id.ToLower().Contains((sender as Button).Text.ToLower()));
+
             // Check the visitor out by removing them from the list:
             if (visitorQryResult == null)
                 // Cant find the user:
                 MessageBox.Show(@"We got problems...");
             else
             {
-                // Remove the visitor from the list:
-                visitor_in_space_list.Remove(visitorQryResult);
+                // Get the epoch timestamp:
+                var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                
+                // Create a copy of the original check-in:
+                Visitor tempVisitor = Visitor.GetNewInstance(   visitorQryResult, 
+                                                                unixTimestamp, 
+                                                                Visitor.VisitorDirection.Out, 
+                                                                false);
 
+                // Add the new visitor entry to the visitor_list:
+                visitor_list.Add(tempVisitor);
+                
                 // Remove the button by disposing of it:
-                (sender as Button).Dispose();
+                RemoveVisitorAvatarButton(sender, e);
+                
+                // Write the data out:
+                WriteData(tempVisitor);
             }
         }
 
@@ -519,27 +719,74 @@ namespace NPC_MakerSpace_CheckIn
 
         private void GenerateReport()
         {
-            MessageBox.Show(@"REPORT!");
+            //MessageBox.Show(@"REPORT BEING GENERATED!");
+
+            // foreach (var visitor in visitor_list)
+            // {
+            //     WriteData(visitor);
+            // }
         }
 
-        private void LogOutAll()
+        private void CheckOutAll()
         {
-            MessageBox.Show(@"LOG OUT ALL!");
+            // Find all unique visitor ids:
+            var distinctList = visitor_list.Select(v => v.Id).Distinct();
             
-            // Check for any visitors still logged in:
-            
-            // Check their default hours:
-            
-            // Logout the visitors the default amount of hours after login:
+            // Create a list of the IDs that will be removed from the list later:
+            List<Visitor> visitorsToCheckOut = new List<Visitor>();
+
+            // Remove all of the avatars:
+            Invoke(new Action(() =>
+            {
+                flpCheckOutList.Controls.Clear();
+            }));
+
+            // Loop through each unique visitor and find all entries for the visitor:
+            foreach (var visitor in distinctList)
+            {
+                // Find all instances of the current visitor to get the instances of visitation:
+                List<Visitor> visitorQryResult = visitor_list.FindAll(element => element.Id.ToLower().Contains(visitor.ToLower()));
+                
+                // If the number of visits is odd, then the visitor hasn't been checked out:
+                if (visitorQryResult.Count % 2 != 0)
+                {
+                    // Create a copy of the original check-in:
+                    Visitor tempVisitor = Visitor.GetNewInstance( visitorQryResult.Last(), 
+                                                                    visitorQryResult.Last().Time += visitorQryResult.Last().EstHours * 3600, 
+                                                                    Visitor.VisitorDirection.Out, true);
+
+                    // Add the new visitor entry to the visitor_list:
+                    visitorsToCheckOut.Add(tempVisitor);
+                    
+                    // Write the data out:
+                    WriteData(tempVisitor);
+                }
+            }
+
+            // Add the list of visitors that needed checking out to the visitor list:
+            if (visitorsToCheckOut.Count > 0)
+                visitor_list.AddRange(visitorsToCheckOut);
         }
         
         void Scheduler(object sender, ElapsedEventArgs e)
         {
+            //MessageBox.Show(@"Scheduler running");
+            
             // Log out all user that are still logged in.
-            LogOutAll();
+            CheckOutAll();
             
             // Generate the daily report:
             GenerateReport();
+            
+            MessageBox.Show(@"Scheduler has completed running");
+        }
+
+        private void generateEndofDayReportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CheckOutAll();
+            GenerateReport();
+
+            MessageBox.Show(@"Report Generation Complete...");
         }
     }
 }

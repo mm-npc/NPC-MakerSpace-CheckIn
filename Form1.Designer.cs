@@ -55,6 +55,8 @@
       this.onScreenKeyboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.reportingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+      this.generateEndofDayReportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
       this.statusBar = new System.Windows.Forms.StatusBar();
       this.statusBarPanel1 = new System.Windows.Forms.StatusBarPanel();
       this.btnComplete = new System.Windows.Forms.Button();
@@ -194,7 +196,7 @@
       // 
       // menuStrip1
       // 
-      this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.fileToolStripMenuItem, this.editToolStripMenuItem, this.helpToolStripMenuItem });
+      this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.fileToolStripMenuItem, this.editToolStripMenuItem, this.helpToolStripMenuItem, this.reportingToolStripMenuItem });
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.Name = "menuStrip1";
       this.menuStrip1.Size = new System.Drawing.Size(927, 24);
@@ -271,6 +273,20 @@
       this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
       this.aboutToolStripMenuItem.Text = "About";
       // 
+      // reportingToolStripMenuItem
+      // 
+      this.reportingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this.generateEndofDayReportToolStripMenuItem });
+      this.reportingToolStripMenuItem.Name = "reportingToolStripMenuItem";
+      this.reportingToolStripMenuItem.Size = new System.Drawing.Size(71, 20);
+      this.reportingToolStripMenuItem.Text = "Reporting";
+      // 
+      // generateEndofDayReportToolStripMenuItem
+      // 
+      this.generateEndofDayReportToolStripMenuItem.Name = "generateEndofDayReportToolStripMenuItem";
+      this.generateEndofDayReportToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+      this.generateEndofDayReportToolStripMenuItem.Text = "Generate End-of-Day Report";
+      this.generateEndofDayReportToolStripMenuItem.Click += new System.EventHandler(this.generateEndofDayReportToolStripMenuItem_Click);
+      // 
       // statusBar
       // 
       this.statusBar.Location = new System.Drawing.Point(0, 349);
@@ -332,6 +348,9 @@
       this.ResumeLayout(false);
       this.PerformLayout();
     }
+
+    private System.Windows.Forms.ToolStripMenuItem reportingToolStripMenuItem;
+    private System.Windows.Forms.ToolStripMenuItem generateEndofDayReportToolStripMenuItem;
 
     private System.Windows.Forms.FlowLayoutPanel flpCheckOutList;
 
