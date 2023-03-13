@@ -19,10 +19,10 @@ namespace NPC_MakerSpace_CheckIn
         };
         private string           _id;              // Student ID (prefered), DL#, Name, etc...
         private string           _reason;          // From the list of reasons
-        private string           _reasonDetail;   // Only applies for the class(department, course number, description, instructor name) and the student organization(org name)
+        private string           _reasonDetail;    // Only applies for the class(department, course number, description, instructor name) and the student organization(org name)
         private long             _time;            // Epoch time
-        private int              _estHours;       // Estimated time being in the space
-        private bool             _autoLogOut;    // Visitor had to be logged out using default hours
+        private int              _estHours;        // Estimated time being in the space
+        private bool             _autoLogOut;      // Visitor had to be logged out using default hours
         private VisitorDirection _direction;       // Visitor coming in or leaving
 
         public Visitor() {}
@@ -254,7 +254,7 @@ namespace NPC_MakerSpace_CheckIn
                 // Define when to run the action in seconds. USED FOR TESTING:
                 //DateTime midnight2 = DateTime.Now.AddSeconds(45);
                 
-                // // Define when to run the action (midnight):
+                // Define when to run the action (midnight):
                 midnight = DateTime.Today.AddDays(1.0) - DateTime.Now;
                 
                 // Get the milliseconds till the action needs to be executed:
@@ -317,18 +317,21 @@ namespace NPC_MakerSpace_CheckIn
             try
             {
                 // Open the Student Organization File:
-                _orgs    = System.IO.File.ReadAllLines(@"C:\Users\decyple\student_orgs.dat");
+                _orgs    = File.ReadAllLines(@"C:\Users\decyple\student_orgs.dat");
                 
                 // Read the new class list file:
                 int i = 1;
-                var classFile = System.IO.File.ReadAllLines(@"C:\Users\decyple\class_list_new.dat");
+                var classFile = File.ReadAllLines(@"C:\Users\decyple\class_list_new.dat");
                 foreach ( var course in classFile )
                 {
                     // Split the line via the tilda delimiter:
                     var classDataColumn = course.Split('~');
                     
                     // Instantiate the new NPC_Class object:
-                    NPC_Class tempClass = new NPC_Class(classDataColumn[0], classDataColumn[2], classDataColumn[3], classDataColumn[5]);
+                    NPC_Class tempClass = new NPC_Class(classDataColumn[0], 
+                                                        classDataColumn[2], 
+                                                        classDataColumn[3], 
+                                                        classDataColumn[5]);
                     
                     // Add the class to the list:
                     class_list.Add(tempClass);
@@ -563,7 +566,7 @@ namespace NPC_MakerSpace_CheckIn
             }
             
             // Check for the Reason:
-            if (cbReason.SelectedIndex == -1)
+            if (cbReason.SelectedIndex == -1 || cbReason.SelectedIndex == 0)
             {
                 MessageBox.Show(@"Need the Reason...");
                 ActiveControl = cbReason;
@@ -597,59 +600,107 @@ namespace NPC_MakerSpace_CheckIn
             return true;
         }
 
-        // Finish by validating the forms fully filled-out, the data is written, and then reset:
         private void btnComplete_Click(object sender, EventArgs e)
         {
-            if (FormValidation())
+            // Validate the users input:
+            if (!FormValidation())
+                return;
+            
+            // Get the epoch timestamp:
+            var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+            
+            // Check if there is already a visitor with that ID in the system that's logged in:
+            int i = -1;
+            Button tempButton = null;
+            // Loop through the buttons in the FlowLayoutPanel:
+            foreach (Button control in flpCheckOutList.Controls)
             {
-                // Get the epoch timestamp:
-                var unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-                string reasonDetail = "";
-                // Get the class:
-                if (cbReason.SelectedIndex == (int)Reasons.Class)
+                // If the ID's match:
+                if (control.Text.ToLower() == tbID.Text.ToLower())
                 {
-                    reasonDetail = classQryResult[lbClassList.SelectedIndex].GetCourseDescription;
+                    // Get the count of matching ID's:
+                    i++;
+                    
+                    // Get the button control to pass to UserCheckOut:
+                    // TODO: Either eliminate the i variable or verify that the control is actually for the correct visitor:
+                    tempButton = control;
                 }
-                // Get the Student Organization:
-                else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
+            }
+            if (i > -1 && cbInOut.Checked == true)
+            {
+                MessageBox.Show(@"Warning: There is already a user with that name...I will still proceed with added numbers to the end of the name");
+                tbID.Text += '_' + unixTimestamp.ToString();
+            }
+            
+            // Get the class:
+            string reason_detail = "";
+            if (cbReason.SelectedIndex == (int)Reasons.Class)
+            {
+                // Detect if no class was selected by the user:
+                if (lbClassList.SelectedIndex == -1)
                 {
-                    reasonDetail = lbClassList.Items[lbClassList.SelectedIndex].ToString();
+                    MessageBox.Show(@"No class has been selected...");
+                    ActiveControl = lbClassList;
+                    return;
                 }
 
-                // Define the visitors direction based on user input:
-                Visitor.VisitorDirection tempDirection;
-                if (cbInOut.Checked)
-                    tempDirection = Visitor.VisitorDirection.In;
-                else
-                    tempDirection = Visitor.VisitorDirection.Out;
-
+                reason_detail = classQryResult[lbClassList.SelectedIndex].GetCourseDescription;
+            }
+            // Get the Student Organization:
+            else if (cbReason.SelectedIndex == (int)Reasons.StudentOrgProject)
+            {
+                reason_detail = lbClassList.Items[lbClassList.SelectedIndex].ToString();
+            }
+            
+            if (cbInOut.Text == @"In")
+            {
                 // Create the visitor class object:
-                Visitor visitor = new Visitor(tbID.Text,
-                    cbReason.Items[cbReason.SelectedIndex].ToString(),
-                    reasonDetail,
-                    unixTimestamp,
-                    int.Parse(tbEstHours.Text),
-                    tempDirection);
-
+                Visitor visitor = new Visitor(tbID.Text, cbReason.Items[cbReason.SelectedIndex].ToString(), reason_detail, unixTimestamp, int.Parse(tbEstHours.Text), Visitor.VisitorDirection.In);
+                
                 // Validate all fields are populated:
                 if (DataValidation(visitor))
                 {
                     // Write the data to the file:
                     WriteData(visitor);
-
-                    // Add the button to the flp:
+                    
+                    // Add the visitor to the check-out list:
                     AddVisitorAvatarButton(tbID.Text);
-
+                    // Button tempBTN = new Button();
+                    // tempBTN.Text = tbID.Text;
+                    // tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2a.png");
+                    // tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
+                    // int width = 108; 
+                    // int height = 108;
+                    // tempBTN.Size = new Size(width, height);
+                    // tempBTN.TextAlign = ContentAlignment.BottomCenter;
+                    // tempBTN.TextImageRelation = TextImageRelation.ImageAboveText;
+                    // tempBTN.Parent = this;
+                    // tempBTN.Click += new EventHandler(UserCheckOut);
+                    // flpCheckOutList.Controls.Add(tempBTN);
+                    
                     // Add the visitor to the list:
                     visitor_list.Add(visitor);
-
-                    // Reset the form to the default values:
-                    ResetForm();
-
-                    ActiveControl = tbID;
                 }
             }
+            else if (cbInOut.Text == @"Out")
+            {
+                // Validate the users input, then check the visitor out:
+                if (FormValidation())
+                    // Log the visitor out by passing tbID as the sender to UserCheckOut. That way we can log the visitor
+                    // out AND destroy the button at the same time:
+                    UserCheckOut(tempButton, e);
+                else
+                    return;
+            }
+            else
+            {
+                MessageBox.Show(@"There was an error completing the request...Check the visitors direction (In/Out)");
+                return;
+            }
+            
+            // Reset the form to the default values and return control to tbID:
+            ResetForm();
+            ActiveControl = tbID;
         }
 
         private void AddVisitorAvatarButton(string id)
@@ -708,6 +759,7 @@ namespace NPC_MakerSpace_CheckIn
         // This provides the same functionality as pressing the search button by entering the enter key:
         private void tbSearch_KeyUp(object sender, KeyEventArgs e)
         {
+            // If the enter key has been pressed, perform the search:
             if (e.KeyValue == (char)13)
                 btnSearch.PerformClick();
         }
@@ -787,6 +839,20 @@ namespace NPC_MakerSpace_CheckIn
             GenerateReport();
 
             MessageBox.Show(@"Report Generation Complete...");
+        }
+        
+        private void tbID_Leave(object sender, EventArgs e)
+        {
+            // Find the visitor in the list by Querying the visitor_list list: 
+            Visitor visitorQryResult = visitor_list.Find(element => element.Id.ToLower().Contains((sender as TextBox).Text.ToLower()));
+
+            // Check the visitor out by removing them from the list:
+            if (visitorQryResult == null)
+            {
+                // Cant find the user. So, we proceed normally:
+                cbInOut.Checked = true;
+                cbInOut.Text = @"In";
+            }
         }
     }
 }

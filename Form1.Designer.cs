@@ -81,6 +81,7 @@
       this.tbID.Name = "tbID";
       this.tbID.Size = new System.Drawing.Size(144, 20);
       this.tbID.TabIndex = 0;
+      this.tbID.Leave += new System.EventHandler(this.tbID_Leave);
       // 
       // lblReason
       // 
