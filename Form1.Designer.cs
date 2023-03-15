@@ -338,6 +338,7 @@
       this.Controls.Add(this.lblID);
       this.Controls.Add(this.tbID);
       this.Controls.Add(this.menuStrip1);
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.Name = "Form1";
       this.Text = "NPC MakerSpace Check-In";
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

@@ -1,7 +1,33 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
   <Profiles>
     <Profile Name="(Default)" />
   </Profiles>
-  <Settings />
+  <Settings>
+    <Setting Name="class_list_dir_name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\decyple</Value>
+    </Setting>
+    <Setting Name="class_list_filename" Type="System.String" Scope="User">
+      <Value Profile="(Default)">class_list_new.dat</Value>
+    </Setting>
+    <Setting Name="reasons_list_dir_name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\decyple</Value>
+    </Setting>
+    <Setting Name="reasons_list_filename" Type="System.String" Scope="User">
+      <Value Profile="(Default)">reasons.dat</Value>
+    </Setting>
+    <Setting Name="orgs_list_dir_name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\decyple</Value>
+    </Setting>
+    <Setting Name="orgs_list_filename" Type="System.String" Scope="User">
+      <Value Profile="(Default)">student_orgs.dat</Value>
+    </Setting>
+    <Setting Name="log_file_dir_name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\decyple\Documents</Value>
+    </Setting>
+    <Setting Name="log_file_filename" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NPC_MakerSpace_Check_In_Out.dat</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>
+

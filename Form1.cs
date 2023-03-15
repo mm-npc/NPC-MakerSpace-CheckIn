@@ -240,11 +240,191 @@ namespace NPC_MakerSpace_CheckIn
 
             return "";
         }
-    
+        
+        private bool FileValidation()
+        {
+            if (!classfileValidate())
+            {
+                MessageBox.Show(@"Class file not found...");
+                if(OpenFile("class"))
+                    return true;
+                return false;
+            }
+
+            if (!orgsfileValidate())
+            {
+                MessageBox.Show(@"Orgs file not found...");
+                if(OpenFile("orgs"))
+                    return true;
+                return false;
+            }
+
+            if (!reasonsfileValidate())
+            {
+                MessageBox.Show(@"Reasons file not found...");
+                if(OpenFile("reasons"))
+                    return true;
+                return false;
+            }
+
+            if (!logfileValidate())
+            {
+                MessageBox.Show(@"Log file not found...");
+                if(OpenFile("log"))
+                    return true;
+                return false;
+            }
+
+            return true;
+        }
+        
+        bool OpenFile(string file)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                // Set the open file dialogs initial properties:
+                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                openFileDialog.Filter = @"dat files (*.dat)|*.dat|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+
+                // Call the dialog:
+                DialogResult t = openFileDialog.ShowDialog();
+
+                // Get the files path:
+                var onlyFileDirectory = Path.GetDirectoryName(openFileDialog.FileName);
+                var onlyFileName = Path.GetFileName(openFileDialog.FileName);
+
+                // Set the appropriate settings to their filename and path:
+                switch (file)
+                {
+                    case "class":
+                        Properties.Settings.Default["class_list_dir_name"] = onlyFileDirectory;
+                        Properties.Settings.Default["class_list_filename"] = onlyFileName;
+                        break;
+                    case "reasons":
+                        Properties.Settings.Default["reasons_list_dir_name"] = onlyFileDirectory;
+                        Properties.Settings.Default["reasons_list_filename"] = onlyFileName;
+                        break;
+                    case "orgs":
+                        Properties.Settings.Default["orgs_list_dir_name"] = onlyFileDirectory;
+                        Properties.Settings.Default["orgs_list_filename"] = onlyFileName;
+                        break;
+                    case "log":
+                        Properties.Settings.Default["log_file_dir_name"] = onlyFileDirectory;
+                        Properties.Settings.Default["log_file_filename"] = onlyFileName;
+                        break;
+                    default:
+                        MessageBox.Show(@"There was an error saving the files in settings...");
+                        break;
+                }
+                Properties.Settings.Default.Save();
+            }
+
+            return true;
+        }
+
+        bool classfileValidate()
+        {
+            // Class List:
+
+            // Get the filename:
+            string sAttr_filename = "";
+            sAttr_filename = Properties.Settings.Default.class_list_filename;
+
+            // Get the directory path:
+            string sAttr_dir_name = "";
+            sAttr_dir_name = Properties.Settings.Default.class_list_dir_name;
+
+            // Check if the file exists:
+            string curFile = sAttr_dir_name + "\\" + sAttr_filename;
+            if (File.Exists(curFile))
+                return true;
+
+            return false;
+        }
+
+        bool orgsfileValidate()
+        {
+            // Orgs List:
+            {
+                // Get the filename:
+                string sAttr_filename;
+                sAttr_filename = Properties.Settings.Default.orgs_list_filename;
+
+                // Get the directory path:
+                string sAttr_dir_name;
+                sAttr_dir_name = Properties.Settings.Default.orgs_list_dir_name;
+
+                // Check if the file exists:
+                string curFile = sAttr_dir_name + "\\" + sAttr_filename;
+                if (File.Exists(curFile))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool reasonsfileValidate()
+        {
+            // Reasons List:
+            {
+                // Get the filename:
+                string sAttr_filename;
+                sAttr_filename = Properties.Settings.Default.reasons_list_filename;
+
+                // Get the directory path:
+                string sAttr_dir_name;
+                sAttr_dir_name = Properties.Settings.Default.reasons_list_dir_name;
+
+                // Check if the file exists:
+                string curFile = sAttr_dir_name + "\\" + sAttr_filename;
+                if (File.Exists(curFile))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool logfileValidate()
+        {
+            // Log File:
+            {
+                // Get the filename:
+                string sAttr_filename;
+                sAttr_filename = Properties.Settings.Default.log_file_filename;
+
+                // Get the directory path:
+                string sAttr_dir_name;
+                sAttr_dir_name = Properties.Settings.Default.log_file_dir_name;
+
+                // Check if the file exists:
+                string curFile = sAttr_dir_name + "\\" + sAttr_filename;
+                if (File.Exists(curFile))
+                    return true;
+            }
+
+            return false;
+        }
+        
         public Form1()
         {
             InitializeComponent();
+            
+            // Validate settings files:
+            if (!FileValidation())
+            {
+                MessageBox.Show(@"Settings Files: Fail!");
 
+                MessageBox.Show(@"The save files:" + Environment.NewLine + Environment.NewLine +
+                                '\t' + Properties.Settings.Default["class_list_dir_name"] + @"\" +
+                                Properties.Settings.Default["class_list_filename"] + Environment.NewLine +
+                                '\t' + Properties.Settings.Default["reasons_list_dir_name"] + @"\" +
+                                Properties.Settings.Default["reasons_list_filename"] + Environment.NewLine +
+                                '\t' + Properties.Settings.Default["orgs_list_dir_name"] + @"\" +
+                                Properties.Settings.Default["orgs_list_filename"] + Environment.NewLine +
+                                '\t' + Properties.Settings.Default["log_file_dir_name"] + @"\" +
+                                Properties.Settings.Default["log_file_filename"] + Environment.NewLine);
+            }
             ReadFiles();
             
             load_cbReason();
@@ -309,6 +489,7 @@ namespace NPC_MakerSpace_CheckIn
                 // AddVisitorAvatarButton("01");
                 // //visitor_list.Add(tempVisitor1_out);
             }
+            
         }
 
         // Read the files for the classes and the orgs into global variables:
@@ -665,18 +846,6 @@ namespace NPC_MakerSpace_CheckIn
                     
                     // Add the visitor to the check-out list:
                     AddVisitorAvatarButton(tbID.Text);
-                    // Button tempBTN = new Button();
-                    // tempBTN.Text = tbID.Text;
-                    // tempBTN.BackgroundImage = Image.FromFile(@"C:\Users\decyple\RiderProjects\NPC-MakerSpace-CheckIn\user64_v2a.png");
-                    // tempBTN.BackgroundImageLayout = ImageLayout.Zoom;
-                    // int width = 108; 
-                    // int height = 108;
-                    // tempBTN.Size = new Size(width, height);
-                    // tempBTN.TextAlign = ContentAlignment.BottomCenter;
-                    // tempBTN.TextImageRelation = TextImageRelation.ImageAboveText;
-                    // tempBTN.Parent = this;
-                    // tempBTN.Click += new EventHandler(UserCheckOut);
-                    // flpCheckOutList.Controls.Add(tempBTN);
                     
                     // Add the visitor to the list:
                     visitor_list.Add(visitor);
